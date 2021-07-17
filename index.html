@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width= , initial-scale=1.0">
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
+    <title>Chat (offline) </title>
+
+    <div>
+        message: <input id="msg-input" type="text"> <button onclick="send()">Enviar </button>
+    </div>
+
+    <div id="msg-container">
+
+    </div>
+
+    <style>
+        .msgDiv{
+            display: flex;
+            justify-content: start;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        const connection  = io('http://localhost:3000');
+
+        const msgInput = document.getElementById('msg-input');
+        const msgContainer = document.getElementById('msg-container');
+
+        const messages = [];
+
+        connection.on('connect', () => {
+            document.title = 'Chat (online)';
+        });
+
+        connection.on('res', data => {
+            messages.push(data); 
+            renderMessages(); 
+        });
+
+        function send(e){
+            console.log("cheguei")
+            const msg = msgInput.value;
+            if(msg.length > 0){
+                connection.emit('send', msg);
+                msgInput.value = ''; 
+            }
+        }
+
+        function renderMessages(){
+            msgContainer.innerHTML = '';
+            for(const m of messages){
+                const h4 = document.createElement('h4');
+                h4.innerText = (m.originId === connection.id ? 'Eu' : m.originId) + ': ';
+
+                const span = document.createElement('span');
+                span.innerText = m.content;
+                
+                const msgDiv = document.createElement('div');
+                msgDiv.className = "msgDiv";
+                msgDiv.appendChild(h4);
+                msgDiv.appendChild(span);
+
+
+                msgContainer.appendChild(msgDiv);
+
+            }
+        }
+    </script>
+    
+</body>
+</html>
